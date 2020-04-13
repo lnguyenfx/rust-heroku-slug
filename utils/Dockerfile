@@ -11,13 +11,14 @@ RUN rm -rf node/include
 FROM curl as rust
 WORKDIR /rust
 ENV HOME=/rust
-RUN curl https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
+RUN curl https://sh.rustup.rs | sh -s -- -y --default-toolchain none
 ENV PATH=$PATH:$HOME/.cargo/bin
 RUN rm -rf $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/share
+RUN rustup toolchain install nightly
 RUN rustup target add wasm32-unknown-unknown
 RUN rustup component add rustfmt-preview
-RUN apt-get install -y gcc file make
-RUN CARGO_TARGET_DIR=/tmp/cargo cargo install wasm-bindgen-cli
+RUN apt-get install -y gcc file make libssl-dev pkg-config
+RUN CARGO_TARGET_DIR=/tmp/cargo cargo install wasm-bindgen-cli --version 0.2.38
 RUN CARGO_TARGET_DIR=/tmp/cargo cargo install wasm-gc
 WORKDIR /tmp/wbg
 COPY Cargo.toml .
@@ -29,10 +30,6 @@ RUN rm -rf $HOME/.cargo/registry
 RUN strip -g $HOME/.cargo/bin/*
 RUN rm $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-gdb
 RUN rm $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/rust-lldb
-RUN strip -g $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin/*
-RUN strip -g $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/**/*.so
-RUN strip -g $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/*
-RUN rm $HOME/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/codegen-backends/*emscripten*
 
 FROM ubuntu:16.04
 COPY --from=rust /rust /app

@@ -8,14 +8,14 @@ default: send
 
 slug_json:
 	mkdir -p downloads
-	curl -X POST \
+	curl -nX POST \
 -H 'Content-Type: application/json' \
 -H 'Accept: application/vnd.heroku+json; version=3' \
 -d '{"process_types":{"web":"${APP_START}"}}' \
 -n https://api.heroku.com/apps/${APP}/slugs -o ${SLUG_JSON}
 
 send: slug_json
-	curl -X PUT \
+	curl -nX PUT \
 -H "Content-Type:" \
 --data-binary @slug.tgz \
 "${GET_SLUG_URL}"
